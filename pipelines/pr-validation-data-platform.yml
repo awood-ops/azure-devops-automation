@@ -1,0 +1,85 @@
+trigger: none
+
+pr:
+  branches:
+    include:
+      - main
+
+# Set ServiceConnection to a service connection name once one exists.
+# When set, the Bicep what-if stage runs against a live subscription.
+# Leave blank to skip what-if and run compile + lint only.
+variables:
+  - name: ServiceConnection
+    value: ''
+
+jobs:
+  - job: BicepCompile
+    displayName: Compile Bicep templates
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - script: |
+          az bicep install
+          echo "Scanning for Bicep files..."
+          failed=0
+          while IFS= read -r -d '' file; do
+            echo "  Compiling: $file"
+            if ! az bicep build --file "$file" 2>&1; then
+              echo "  FAILED: $file"
+              failed=1
+            fi
+          done < <(find . -name "*.bicep" -not -path "*/.git/*" -print0)
+          if [ $failed -eq 0 ]; then echo "All Bicep files compiled successfully"; fi
+          exit $failed
+        displayName: az bicep build
+
+  - job: PowerShellLint
+    displayName: Lint PowerShell scripts
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - task: PowerShell@2
+        displayName: PSScriptAnalyzer
+        inputs:
+          targetType: inline
+          pwsh: true
+          script: |
+            $null = Install-Module PSScriptAnalyzer -Force -Scope CurrentUser -ErrorAction Stop
+            $ps1Files = Get-ChildItem -Path . -Filter *.ps1 -Recurse |
+                Where-Object { $_.FullName -notmatch '[\\/]\.git[\\/]' }
+            if (-not $ps1Files) { Write-Host "No PowerShell files found — skipping"; exit 0 }
+            Write-Host "Scanning $($ps1Files.Count) file(s)..."
+            $results = $ps1Files | ForEach-Object {
+              Invoke-ScriptAnalyzer -Path $_.FullName -Severity Error,Warning `
+                  -ExcludeRule PSAvoidUsingWriteHost
+            }
+            if ($results) {
+              $results | Format-Table RuleName,Severity,ScriptName,Line,Message -AutoSize
+              Write-Error "$($results.Count) issue(s) found — fix before merging"
+              exit 1
+            }
+            Write-Host "PSScriptAnalyzer: no issues found"
+
+  - job: WhatIf
+    displayName: Bicep what-if
+    pool:
+      vmImage: ubuntu-latest
+    condition: ne(variables['ServiceConnection'], '')
+    steps:
+      - task: AzureCLI@2
+        displayName: az deployment sub what-if
+        inputs:
+          azureSubscription: $(ServiceConnection)
+          scriptType: bash
+          scriptLocation: inlineScript
+          inlineScript: |
+            MAIN=$(find . -name "main.bicep" -not -path "*/.git/*" | head -1)
+            if [ -z "$MAIN" ]; then
+              echo "No main.bicep found — skipping what-if"
+              exit 0
+            fi
+            echo "Running what-if against: $MAIN"
+            az deployment sub what-if \
+              --location uksouth \
+              --template-file "$MAIN" \
+              --no-pretty-print
