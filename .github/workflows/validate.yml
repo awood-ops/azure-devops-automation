@@ -1,0 +1,23 @@
+name: Validate ADO Project
+
+on:
+  workflow_dispatch:
+    inputs:
+      organization:
+        description: ADO organisation name (e.g. my-org)
+        required: true
+      project:
+        description: ADO project name
+        required: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run validation
+        shell: pwsh
+        env:
+          AZURE_DEVOPS_EXT_PAT: ${{ secrets.AZURE_DEVOPS_PAT }}
+        run: .\scripts\project\Test-AzureDevOpsProject.ps1 -Organization '${{ inputs.organization }}' -Project '${{ inputs.project }}'
