@@ -2,6 +2,24 @@
 
 > Scripts and Claude Code skills for creating, securing, and maintaining customer Azure DevOps projects.
 
+```mermaid
+flowchart TD
+    A([/new-devops-project]) --> B[New-CustomerProject.ps1]
+    B --> C[New-AzureDevOpsProject.ps1\nCreate project\nAgile · Git · Private]
+    B --> D[Set-AzureDevOpsGroupMember.ps1\nWire Entra ID groups\nAdmins & Readers]
+    B --> E[Invoke-AzureDevOpsHardening.ps1\n10-step security baseline]
+    B --> F[Add-PrValidationPipeline.ps1\nPR validation pipeline\nBicep · PSScriptAnalyzer · What-if]
+
+    E --> E1[Branch policies]
+    E --> E2[Pipeline security]
+    E --> E3[Service connection security]
+    E --> E4[Library & repo ACL]
+    E --> E5[Org settings]
+
+    style A fill:#512BD4,color:#fff
+    style B fill:#0072C6,color:#fff
+```
+
 ---
 
 ## Contents
@@ -118,3 +136,9 @@ All scripts support three auth methods in priority order:
 - Az PowerShell module — `Install-Module Az`
 - Azure CLI — for some operations
 - Project Collection Administrator permissions in the target ADO organisation
+
+---
+
+## CI
+
+Pull requests are linted with [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) via GitHub Actions — see `.github/workflows/lint.yml`.
