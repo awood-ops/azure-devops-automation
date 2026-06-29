@@ -52,12 +52,14 @@ flowchart TD
 
 **Install the Claude Code skill:**
 
-
-
-**Set the scripts path** (add to your PowerShell ):
-
 ```powershell
 Copy-Item "skills\new-devops-project.md" "$env:USERPROFILE\.claude\commands\new-devops-project.md"
+```
+
+**Set the scripts path** (add to your PowerShell `$PROFILE` once):
+
+```powershell
+$env:ADO_AUTOMATION_PATH = 'C:\path\to\azure-devops-automation'
 ```
 
 **Run it:**
