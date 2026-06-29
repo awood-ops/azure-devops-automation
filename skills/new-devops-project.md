@@ -25,11 +25,22 @@ allowed-tools:
 # New Azure DevOps Customer Project
 
 You are creating a new Azure DevOps project. The process runs three scripts in sequence from
-`C:\repo\GitHub\AzureDevOps\scripts\project\New-CustomerProject.ps1`:
+`$env:ADO_AUTOMATION_PATH\scripts\project\New-CustomerProject.ps1`:
 
 1. **Create** the project (Agile process, Git, private)
 2. **Wire Entra ID groups** — optional, maps groups to Project Administrators and Readers
 3. **Security hardening** — applies the standard 10-step lockdown baseline
+
+---
+
+## Prerequisites
+
+Ensure `$env:ADO_AUTOMATION_PATH` is set to the root of your local clone before running:
+
+```powershell
+# Add to your PowerShell $PROFILE once
+$env:ADO_AUTOMATION_PATH = 'C:\path\to\azure-devops-automation'
+```
 
 ---
 
@@ -89,10 +100,18 @@ Wait for confirmation before running anything.
 
 ## Step 3 — Run the script
 
-Once confirmed, run the orchestrator script using PowerShell:
+Once confirmed, Before invoking, verify the env var is set:
 
 ```powershell
-& "C:\repo\GitHub\AzureDevOps\scripts\project\New-CustomerProject.ps1" `
+if (-not $env:ADO_AUTOMATION_PATH) {
+    throw 'ADO_AUTOMATION_PATH is not set. Add it to your $PROFILE.'
+}
+```
+
+run the orchestrator script using PowerShell:
+
+```powershell
+& "$env:ADO_AUTOMATION_PATH\scripts\project\New-CustomerProject.ps1" `
     -Organization       "<Organisation>" `
     -ProjectName        "<ProjectName>" `
     -ProjectDescription "<description>" `
@@ -194,7 +213,7 @@ On success: `"FabricBicep forked into <ProjectName> from Infrastructure and Secu
 Then create the PR validation pipeline and apply the build validation branch policy:
 
 ```powershell
-& "C:\repo\GitHub\AzureDevOps\scripts\pipeline\Add-PrValidationPipeline.ps1" `
+& "$env:ADO_AUTOMATION_PATH\scripts\pipeline\Add-PrValidationPipeline.ps1" `
     -Organization   "<Organisation>" `
     -Project        "<ProjectName>" `
     -RepositoryName "FabricBicep" `
@@ -256,7 +275,7 @@ On success: `"DataLandingZone_bicepavm forked into <ProjectName> from Infrastruc
 Then create the PR validation pipeline and apply the build validation branch policy:
 
 ```powershell
-& "C:\repo\GitHub\AzureDevOps\scripts\pipeline\Add-PrValidationPipeline.ps1" `
+& "$env:ADO_AUTOMATION_PATH\scripts\pipeline\Add-PrValidationPipeline.ps1" `
     -Organization   "<Organisation>" `
     -Project        "<ProjectName>" `
     -RepositoryName "DataLandingZone_bicepavm" `
