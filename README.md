@@ -145,6 +145,14 @@ All scripts support three auth methods in priority order:
 
 ---
 
+## Service connections and workload identity
+
+`New-AzureDevOpsServiceConnection.ps1` creates the ADO-side service connection, but the Entra ID app registration and federated credential must exist first.
+
+Use [azure-workload-identity](https://github.com/awood-ops/azure-workload-identity) to automate end-to-end setup — it creates the app registration with the correct role (default: `Contributor`) and wires the federated credential to the service connection in a single run.
+
+---
+
 ## CI
 
 Pull requests are linted with [PSScriptAnalyzer](https://github.com/PowerShell/PSScriptAnalyzer) via GitHub Actions — see `.github/workflows/lint.yml`.
