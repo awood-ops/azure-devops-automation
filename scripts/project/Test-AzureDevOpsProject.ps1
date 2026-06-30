@@ -46,7 +46,6 @@ try {
     $proj = Invoke-RestMethod -Method Get -Headers $headers `
         -Uri "$baseUrl/_apis/projects/$projEnc`?api-version=7.1"
     $results += & $check "Project '$Project' exists" $true "ID: $($proj.id)"
-    $projectId = $proj.id
 } catch {
     $results += & $check "Project '$Project' exists" $false "NOT FOUND"
     $results | Format-Table -AutoSize
