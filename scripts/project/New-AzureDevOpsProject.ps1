@@ -165,7 +165,7 @@ function Get-AzureDevOpsToken {
         }
     }
     catch {
-        # Fall through to PAT check
+        Write-Verbose "Az module token unavailable: $_"
     }
     
     # Try to get PAT from environment variable
@@ -181,7 +181,7 @@ function Get-AzureDevOpsToken {
         }
     }
     catch {
-        # Continue
+        Write-Verbose "az CLI token unavailable: $_"
     }
     
     Write-Error @"
